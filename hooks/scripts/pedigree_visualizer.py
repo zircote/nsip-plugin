@@ -9,7 +9,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 
 class PedigreeVisualizer:
@@ -141,12 +141,14 @@ class PedigreeVisualizer:
         if sire or dam:
             total_ancestors += sum([bool(sire), bool(dam)])
         if grandparents:
-            total_ancestors += sum([
-                bool(grandparents.get("sire_sire")),
-                bool(grandparents.get("sire_dam")),
-                bool(grandparents.get("dam_sire")),
-                bool(grandparents.get("dam_dam"))
-            ])
+            total_ancestors += sum(
+                [
+                    bool(grandparents.get("sire_sire")),
+                    bool(grandparents.get("sire_dam")),
+                    bool(grandparents.get("dam_sire")),
+                    bool(grandparents.get("dam_dam")),
+                ]
+            )
 
         lines.append(f"Total Ancestors Identified: {total_ancestors}")
         lines.append("=" * 80)
@@ -254,7 +256,7 @@ def main():
         if "get_lineage" not in tool_name.lower():
             result = {
                 "continue": True,
-                "metadata": {"pedigree_generated": False, "reason": "Not a lineage query"}
+                "metadata": {"pedigree_generated": False, "reason": "Not a lineage query"},
             }
             print(json.dumps(result))
             sys.exit(0)
@@ -263,7 +265,7 @@ def main():
         if tool_result.get("isError", False):
             result = {
                 "continue": True,
-                "metadata": {"pedigree_generated": False, "reason": "Tool returned error"}
+                "metadata": {"pedigree_generated": False, "reason": "Tool returned error"},
             }
             print(json.dumps(result))
             sys.exit(0)
@@ -275,18 +277,15 @@ def main():
         if filepath:
             result = {
                 "continue": True,
-                "metadata": {
-                    "pedigree_generated": True,
-                    "export_path": filepath
-                }
+                "metadata": {"pedigree_generated": True, "export_path": filepath},
             }
         else:
             result = {
                 "continue": True,
                 "metadata": {
                     "pedigree_generated": False,
-                    "reason": "Failed to generate visualization"
-                }
+                    "reason": "Failed to generate visualization",
+                },
             }
 
         print(json.dumps(result))
@@ -295,10 +294,7 @@ def main():
         # On error, continue but report the error
         error_result = {
             "continue": True,
-            "metadata": {
-                "pedigree_generated": False,
-                "error": str(e)
-            }
+            "metadata": {"pedigree_generated": False, "error": str(e)},
         }
         print(json.dumps(error_result))
 

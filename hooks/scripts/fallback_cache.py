@@ -5,12 +5,12 @@ Provide cached data when API calls fail.
 Triggers on: All mcp__nsip__* tools
 """
 
+import hashlib
 import json
 import sys
-import hashlib
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict
+from typing import Dict, Optional
 
 
 class FallbackCacheHandler:
@@ -125,7 +125,7 @@ class FallbackCacheHandler:
             if not cache_path.exists():
                 return None
 
-            with open(cache_path, "r", encoding="utf-8") as f:
+            with open(cache_path, encoding="utf-8") as f:
                 cache_entry = json.load(f)
 
             return cache_entry
@@ -133,12 +133,7 @@ class FallbackCacheHandler:
         except Exception:
             return None
 
-    def handle_fallback(
-        self,
-        tool_name: str,
-        parameters: dict,
-        result: dict
-    ) -> Dict:
+    def handle_fallback(self, tool_name: str, parameters: dict, result: dict) -> Dict:
         """
         Handle fallback to cached data if API failed.
 
@@ -152,10 +147,7 @@ class FallbackCacheHandler:
         """
         # Check if this is a failure
         if not self._is_failure(result):
-            return {
-                "fallback_used": False,
-                "reason": "No failure detected"
-            }
+            return {"fallback_used": False, "reason": "No failure detected"}
 
         # Try to load cached data
         cached_data = self._load_cached_data(tool_name, parameters)
@@ -165,14 +157,11 @@ class FallbackCacheHandler:
                 "timestamp": datetime.utcnow().isoformat() + "Z",
                 "tool": tool_name,
                 "parameters": parameters,
-                "status": "no_cache_available"
+                "status": "no_cache_available",
             }
             self._log_fallback(log_entry)
 
-            return {
-                "fallback_used": False,
-                "reason": "No cached data available"
-            }
+            return {"fallback_used": False, "reason": "No cached data available"}
 
         # Extract metadata from cache
         cached_at = cached_data.get("cached_at", "Unknown")
@@ -199,7 +188,7 @@ class FallbackCacheHandler:
             "parameters": parameters,
             "cached_at": cached_at,
             "cache_age": age_str,
-            "status": "fallback_used"
+            "status": "fallback_used",
         }
         self._log_fallback(log_entry)
 
@@ -214,7 +203,7 @@ class FallbackCacheHandler:
             "cached_at": cached_at,
             "cache_age": age_str,
             "cached_result": cached_result,
-            "context_message": context_message
+            "context_message": context_message,
         }
 
 
@@ -232,27 +221,17 @@ def main():
         if not tool_name.startswith("mcp__nsip__"):
             result = {
                 "continue": True,
-                "metadata": {"fallback_checked": False, "reason": "Not an NSIP tool"}
+                "metadata": {"fallback_checked": False, "reason": "Not an NSIP tool"},
             }
             print(json.dumps(result))
             sys.exit(0)
 
         # Handle fallback logic
         fallback_handler = FallbackCacheHandler()
-        fallback_metadata = fallback_handler.handle_fallback(
-            tool_name,
-            tool_params,
-            tool_result
-        )
+        fallback_metadata = fallback_handler.handle_fallback(tool_name, tool_params, tool_result)
 
         # Build result
-        result = {
-            "continue": True,
-            "metadata": {
-                "fallback_checked": True,
-                **fallback_metadata
-            }
-        }
+        result = {"continue": True, "metadata": {"fallback_checked": True, **fallback_metadata}}
 
         # Add context message if fallback was used
         if fallback_metadata.get("context_message"):
@@ -262,13 +241,7 @@ def main():
 
     except Exception as e:
         # On error, continue but report the error
-        error_result = {
-            "continue": True,
-            "metadata": {
-                "fallback_checked": False,
-                "error": str(e)
-            }
-        }
+        error_result = {"continue": True, "metadata": {"fallback_checked": False, "error": str(e)}}
         print(json.dumps(error_result))
 
     sys.exit(0)

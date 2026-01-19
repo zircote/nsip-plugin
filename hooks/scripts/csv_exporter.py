@@ -4,12 +4,12 @@ CSV Exporter Hook (PostToolUse)
 Exports search results and animal data to CSV files for analysis.
 """
 
+import csv
 import json
 import sys
-import csv
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 
 def get_export_dir() -> Path:
@@ -19,7 +19,7 @@ def get_export_dir() -> Path:
     return export_dir
 
 
-def flatten_dict(d: dict, parent_key: str = '', sep: str = '_') -> dict:
+def flatten_dict(d: dict, parent_key: str = "", sep: str = "_") -> dict:
     """
     Flatten nested dictionary for CSV export.
 
@@ -39,7 +39,7 @@ def flatten_dict(d: dict, parent_key: str = '', sep: str = '_') -> dict:
             items.extend(flatten_dict(v, new_key, sep=sep).items())
         elif isinstance(v, list):
             # Convert lists to comma-separated strings
-            items.append((new_key, ', '.join(map(str, v)) if v else ''))
+            items.append((new_key, ", ".join(map(str, v)) if v else ""))
         else:
             items.append((new_key, v))
 
@@ -74,13 +74,13 @@ def export_to_csv(data: List[Dict[str, Any]], filename: str) -> str:
     all_keys = sorted(all_keys)
 
     # Write to CSV
-    with open(filepath, 'w', newline='', encoding='utf-8') as csvfile:
+    with open(filepath, "w", newline="", encoding="utf-8") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=all_keys)
         writer.writeheader()
 
         for item in flattened_data:
             # Fill missing keys with empty strings
-            row = {key: item.get(key, '') for key in all_keys}
+            row = {key: item.get(key, "") for key in all_keys}
             writer.writerow(row)
 
     return str(filepath)
@@ -101,17 +101,17 @@ def extract_results(result_data: dict) -> List[Dict[str, Any]]:
         return result_data
 
     # Check for common result patterns
-    for key in ['animals', 'results', 'data', 'items']:
+    for key in ["animals", "results", "data", "items"]:
         if key in result_data and isinstance(result_data[key], list):
             return result_data[key]
 
     # If result contains animal data directly
-    if 'lpn_id' in result_data or 'animal_id' in result_data:
+    if "lpn_id" in result_data or "animal_id" in result_data:
         return [result_data]
 
     # Check if result has content that looks like it contains the data
-    if 'content' in result_data:
-        content = result_data['content']
+    if "content" in result_data:
+        content = result_data["content"]
         if isinstance(content, list):
             return content
         elif isinstance(content, dict):
@@ -130,8 +130,8 @@ def generate_filename(tool_name: str) -> str:
     Returns:
         Filename with timestamp
     """
-    timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
-    base_name = tool_name.replace('mcp__nsip__', '').replace('__', '_')
+    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    base_name = tool_name.replace("mcp__nsip__", "").replace("__", "_")
     return f"{base_name}_{timestamp}.csv"
 
 
@@ -148,10 +148,7 @@ def main():
         if tool_result.get("isError", False):
             result = {
                 "continue": True,
-                "metadata": {
-                    "exported": False,
-                    "reason": "Error result not exported"
-                }
+                "metadata": {"exported": False, "reason": "Error result not exported"},
             }
             print(json.dumps(result))
             return
@@ -162,10 +159,7 @@ def main():
         if not data_to_export:
             result = {
                 "continue": True,
-                "metadata": {
-                    "exported": False,
-                    "reason": "No exportable data found"
-                }
+                "metadata": {"exported": False, "reason": "No exportable data found"},
             }
             print(json.dumps(result))
             return
@@ -180,21 +174,15 @@ def main():
                 "exported": True,
                 "filepath": filepath,
                 "record_count": len(data_to_export),
-                "export_dir": str(get_export_dir())
-            }
+                "export_dir": str(get_export_dir()),
+            },
         }
 
         print(json.dumps(result))
 
     except Exception as e:
         # On error, continue but report the error
-        error_result = {
-            "continue": True,
-            "metadata": {
-                "exported": False,
-                "error": str(e)
-            }
-        }
+        error_result = {"continue": True, "metadata": {"exported": False, "error": str(e)}}
         print(json.dumps(error_result))
 
 

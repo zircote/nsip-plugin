@@ -41,15 +41,12 @@ class ErrorNotifier:
         """
         try:
             if self.tracker_file.exists():
-                with open(self.tracker_file, "r", encoding="utf-8") as f:
+                with open(self.tracker_file, encoding="utf-8") as f:
                     return json.load(f)
         except Exception:
             pass
 
-        return {
-            "failures": [],
-            "last_alert": None
-        }
+        return {"failures": [], "last_alert": None}
 
     def _save_error_tracker(self, tracker_data: Dict):
         """
@@ -131,7 +128,7 @@ class ErrorNotifier:
             "Try accessing the API directly in a browser",
             "Check the Claude Code logs for detailed error messages",
             "Wait a few minutes and try again - the API may be temporarily unavailable",
-            "Contact NSIP support if the issue persists"
+            "Contact NSIP support if the issue persists",
         ]
 
     def _create_alert(self, failures: List[Dict]) -> str:
@@ -162,7 +159,9 @@ class ErrorNotifier:
         lines.append("=" * 80)
         lines.append("")
         lines.append(f"Alert Time: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC")
-        lines.append(f"Total Failures: {len(failures)} in the last {int(self.time_window.total_seconds() / 60)} minutes")
+        lines.append(
+            f"Total Failures: {len(failures)} in the last {int(self.time_window.total_seconds() / 60)} minutes"
+        )
         lines.append("")
 
         lines.append("AFFECTED TOOLS:")
@@ -197,11 +196,7 @@ class ErrorNotifier:
         except Exception:
             return ""
 
-    def track_and_notify(
-        self,
-        tool_name: str,
-        result: dict
-    ) -> Dict:
+    def track_and_notify(self, tool_name: str, result: dict) -> Dict:
         """
         Track failures and create alerts if threshold exceeded.
 
@@ -214,10 +209,7 @@ class ErrorNotifier:
         """
         # Check if this is a failure
         if not self._is_failure(result):
-            return {
-                "error_tracked": False,
-                "reason": "No failure detected"
-            }
+            return {"error_tracked": False, "reason": "No failure detected"}
 
         # Load tracker
         tracker = self._load_error_tracker()
@@ -226,7 +218,7 @@ class ErrorNotifier:
         failure_record = {
             "timestamp": datetime.utcnow().isoformat() + "Z",
             "tool": tool_name,
-            "error_reason": result.get("error", "Unknown error")
+            "error_reason": result.get("error", "Unknown error"),
         }
 
         tracker["failures"].append(failure_record)
@@ -263,7 +255,7 @@ class ErrorNotifier:
             "recent_failure_count": recent_failure_count,
             "alert_created": bool(alert_path),
             "alert_path": alert_path,
-            "threshold": self.failure_threshold
+            "threshold": self.failure_threshold,
         }
 
 
@@ -280,7 +272,7 @@ def main():
         if not tool_name.startswith("mcp__nsip__"):
             result = {
                 "continue": True,
-                "metadata": {"error_tracked": False, "reason": "Not an NSIP tool"}
+                "metadata": {"error_tracked": False, "reason": "Not an NSIP tool"},
             }
             print(json.dumps(result))
             sys.exit(0)
@@ -290,10 +282,7 @@ def main():
         notify_metadata = notifier.track_and_notify(tool_name, tool_result)
 
         # Build result
-        result = {
-            "continue": True,
-            "metadata": notify_metadata
-        }
+        result = {"continue": True, "metadata": notify_metadata}
 
         # Add context message if alert was created
         if notify_metadata.get("alert_created"):
@@ -306,13 +295,7 @@ def main():
 
     except Exception as e:
         # On error, continue but report the error
-        error_result = {
-            "continue": True,
-            "metadata": {
-                "error_tracked": False,
-                "error": str(e)
-            }
-        }
+        error_result = {"continue": True, "metadata": {"error_tracked": False, "error": str(e)}}
         print(json.dumps(error_result))
 
     sys.exit(0)

@@ -34,7 +34,7 @@ def log_query(tool_name: str, parameters: dict, result: dict, duration_ms: float
         "success": not result.get("isError", False),
         "error": result.get("error"),
         "result_size": len(json.dumps(result)),
-        "duration_ms": duration_ms
+        "duration_ms": duration_ms,
     }
 
     # Redact sensitive data if any (currently none for NSIP)
@@ -49,11 +49,7 @@ def log_query(tool_name: str, parameters: dict, result: dict, duration_ms: float
             f.write(json.dumps(log_entry) + "\n")
     except Exception as e:
         # Silently fail logging - don't break the tool execution
-        print(json.dumps({
-            "metadata": {
-                "log_error": str(e)
-            }
-        }), file=sys.stderr)
+        print(json.dumps({"metadata": {"log_error": str(e)}}), file=sys.stderr)
 
 
 def main():
@@ -78,21 +74,15 @@ def main():
             "metadata": {
                 "logged": True,
                 "log_file": str(get_log_file()),
-                "timestamp": datetime.utcnow().isoformat() + "Z"
-            }
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            },
         }
 
         print(json.dumps(result))
 
     except Exception as e:
         # On error, continue but report the error
-        error_result = {
-            "continue": True,
-            "metadata": {
-                "logged": False,
-                "error": str(e)
-            }
-        }
+        error_result = {"continue": True, "metadata": {"logged": False, "error": str(e)}}
         print(json.dumps(error_result))
 
 

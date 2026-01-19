@@ -9,7 +9,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 
 class BreedingReportGenerator:
@@ -113,12 +113,12 @@ class BreedingReportGenerator:
             "NFAT": "Fat Depth",
             "NLEYE": "Eye Muscle Depth",
             "WormResistance": "Worm Resistance",
-            "FleeceMeasurements": "Fleece Quality"
+            "FleeceMeasurements": "Fleece Quality",
         }
 
         found_traits = False
         for field, label in trait_fields.items():
-            if field in animal and animal[field]:
+            if animal.get(field):
                 value = animal[field]
                 if isinstance(value, (int, float)):
                     lines.append(f"- **{label}:** {value:.2f}")
@@ -232,7 +232,9 @@ class BreedingReportGenerator:
             lpn = animal_data.get("LPN", "Unknown")
             report_lines.append(f"# Breeding Report: {animal_name} ({lpn})")
             report_lines.append("")
-            report_lines.append(f"**Generated:** {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC")
+            report_lines.append(
+                f"**Generated:** {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC"
+            )
             report_lines.append("")
             report_lines.append("---")
             report_lines.append("")
@@ -250,7 +252,9 @@ class BreedingReportGenerator:
             # Footer
             report_lines.append("---")
             report_lines.append("")
-            report_lines.append("*This report is generated automatically and should be reviewed by a breeding specialist.*")
+            report_lines.append(
+                "*This report is generated automatically and should be reviewed by a breeding specialist.*"
+            )
 
             return "\n".join(report_lines)
 
@@ -292,14 +296,13 @@ def main():
 
         # Only process animal queries
         is_animal_query = any(
-            keyword in tool_name.lower()
-            for keyword in ["get_animal", "search_by_lpn"]
+            keyword in tool_name.lower() for keyword in ["get_animal", "search_by_lpn"]
         )
 
         if not is_animal_query:
             result = {
                 "continue": True,
-                "metadata": {"report_generated": False, "reason": "Not an animal query"}
+                "metadata": {"report_generated": False, "reason": "Not an animal query"},
             }
             print(json.dumps(result))
             sys.exit(0)
@@ -308,7 +311,7 @@ def main():
         if tool_result.get("isError", False):
             result = {
                 "continue": True,
-                "metadata": {"report_generated": False, "reason": "Tool returned error"}
+                "metadata": {"report_generated": False, "reason": "Tool returned error"},
             }
             print(json.dumps(result))
             sys.exit(0)
@@ -322,39 +325,24 @@ def main():
             if filepath:
                 result = {
                     "continue": True,
-                    "metadata": {
-                        "report_generated": True,
-                        "export_path": filepath
-                    }
+                    "metadata": {"report_generated": True, "export_path": filepath},
                 }
             else:
                 result = {
                     "continue": True,
-                    "metadata": {
-                        "report_generated": False,
-                        "reason": "Failed to save report"
-                    }
+                    "metadata": {"report_generated": False, "reason": "Failed to save report"},
                 }
         else:
             result = {
                 "continue": True,
-                "metadata": {
-                    "report_generated": False,
-                    "reason": "Failed to generate report"
-                }
+                "metadata": {"report_generated": False, "reason": "Failed to generate report"},
             }
 
         print(json.dumps(result))
 
     except Exception as e:
         # On error, continue but report the error
-        error_result = {
-            "continue": True,
-            "metadata": {
-                "report_generated": False,
-                "error": str(e)
-            }
-        }
+        error_result = {"continue": True, "metadata": {"report_generated": False, "error": str(e)}}
         print(json.dumps(error_result))
 
     sys.exit(0)

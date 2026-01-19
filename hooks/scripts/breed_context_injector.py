@@ -33,38 +33,38 @@ class BreedContextInjector:
                 "name": "Merino",
                 "characteristics": "fine wool production, adapted to various climates",
                 "key_traits": ["fleece weight", "fiber diameter", "staple length"],
-                "breeding_focus": "wool quality and quantity"
+                "breeding_focus": "wool quality and quantity",
             },
             "2": {
                 "name": "Border Leicester",
                 "characteristics": "maternal breed, good milk production, easy lambing",
                 "key_traits": ["maternal ability", "growth rate", "carcass quality"],
-                "breeding_focus": "maternal characteristics and lamb growth"
+                "breeding_focus": "maternal characteristics and lamb growth",
             },
             "3": {
                 "name": "Poll Dorset",
                 "characteristics": "terminal sire breed, excellent meat production",
                 "key_traits": ["growth rate", "muscle depth", "fat depth"],
-                "breeding_focus": "meat production and carcass quality"
+                "breeding_focus": "meat production and carcass quality",
             },
             "4": {
                 "name": "White Suffolk",
                 "characteristics": "terminal sire breed, rapid growth, good conformation",
                 "key_traits": ["post-weaning weight", "eye muscle depth", "fat depth"],
-                "breeding_focus": "meat production and growth rate"
+                "breeding_focus": "meat production and growth rate",
             },
             "5": {
                 "name": "Dorper",
                 "characteristics": "hair sheep, adapted to harsh conditions, good meat",
                 "key_traits": ["weaning weight", "adaptation", "meat quality"],
-                "breeding_focus": "adaptability and meat production"
+                "breeding_focus": "adaptability and meat production",
             },
             "6": {
                 "name": "Corriedale",
                 "characteristics": "dual-purpose breed, wool and meat production",
                 "key_traits": ["fleece weight", "body weight", "fiber diameter"],
-                "breeding_focus": "balanced wool and meat production"
-            }
+                "breeding_focus": "balanced wool and meat production",
+            },
         }
 
     def _get_breed_info(self, breed_id: str) -> Optional[Dict]:
@@ -85,7 +85,7 @@ class BreedContextInjector:
         cache_file = self.cache_dir / f"breed_{breed_id}.json"
         if cache_file.exists():
             try:
-                with open(cache_file, "r", encoding="utf-8") as f:
+                with open(cache_file, encoding="utf-8") as f:
                     return json.load(f)
             except Exception:
                 pass
@@ -107,9 +107,7 @@ class BreedContextInjector:
         key_traits = breed_info.get("key_traits", [])
         breeding_focus = breed_info.get("breeding_focus", "")
 
-        context_parts = [
-            f"You are working with {name} breed."
-        ]
+        context_parts = [f"You are working with {name} breed."]
 
         if characteristics:
             context_parts.append(f"This breed is known for: {characteristics}.")
@@ -143,10 +141,7 @@ class BreedContextInjector:
                 break
 
         if not breed_id:
-            return {
-                "context_injected": False,
-                "reason": "No breed_id found in parameters"
-            }
+            return {"context_injected": False, "reason": "No breed_id found in parameters"}
 
         # Get breed information
         breed_info = self._get_breed_info(breed_id)
@@ -154,7 +149,7 @@ class BreedContextInjector:
         if not breed_info:
             return {
                 "context_injected": False,
-                "reason": f"Breed information not found for breed_id: {breed_id}"
+                "reason": f"Breed information not found for breed_id: {breed_id}",
             }
 
         # Format context message
@@ -164,7 +159,7 @@ class BreedContextInjector:
             "context_injected": True,
             "breed_id": breed_id,
             "breed_name": breed_info.get("name", "Unknown"),
-            "context_message": context_message
+            "context_message": context_message,
         }
 
 
@@ -184,7 +179,7 @@ def main():
         if not is_relevant:
             result = {
                 "continue": True,
-                "metadata": {"context_injected": False, "reason": "Not a relevant tool"}
+                "metadata": {"context_injected": False, "reason": "Not a relevant tool"},
             }
             print(json.dumps(result))
             sys.exit(0)
@@ -194,10 +189,7 @@ def main():
         inject_metadata = injector.inject_context(tool_params)
 
         # Build result
-        result = {
-            "continue": True,
-            "metadata": inject_metadata
-        }
+        result = {"continue": True, "metadata": inject_metadata}
 
         # Add context message if injection succeeded
         if inject_metadata.get("context_message"):
@@ -207,13 +199,7 @@ def main():
 
     except Exception as e:
         # On error, continue but report the error
-        error_result = {
-            "continue": True,
-            "metadata": {
-                "context_injected": False,
-                "error": str(e)
-            }
-        }
+        error_result = {"continue": True, "metadata": {"context_injected": False, "error": str(e)}}
         print(json.dumps(error_result))
 
     sys.exit(0)

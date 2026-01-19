@@ -4,9 +4,9 @@ Result Cache Hook (PostToolUse)
 Caches frequently accessed animal data to improve performance and reduce API load.
 """
 
+import hashlib
 import json
 import sys
-import hashlib
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
@@ -61,7 +61,7 @@ class ResultCache:
             return None
 
         try:
-            with open(cache_path, "r", encoding="utf-8") as f:
+            with open(cache_path, encoding="utf-8") as f:
                 cache_entry = json.load(f)
 
             # Check expiration
@@ -94,7 +94,7 @@ class ResultCache:
                 "tool": tool_name,
                 "parameters": parameters,
                 "result": result,
-                "cached_at": datetime.utcnow().isoformat() + "Z"
+                "cached_at": datetime.utcnow().isoformat() + "Z",
             }
 
             with open(cache_path, "w", encoding="utf-8") as f:
@@ -120,7 +120,7 @@ class ResultCache:
         return {
             "entries": len(cache_files),
             "total_size_bytes": total_size,
-            "cache_dir": str(self.cache_dir)
+            "cache_dir": str(self.cache_dir),
         }
 
 
@@ -131,7 +131,7 @@ def should_cache_tool(tool_name: str) -> bool:
         "nsip_get_animal",
         "nsip_search_by_lpn",
         "nsip_get_lineage",
-        "nsip_get_progeny"
+        "nsip_get_progeny",
     ]
 
     # Extract base tool name (remove mcp__nsip__ prefix if present)
@@ -159,31 +159,19 @@ def main():
 
             result = {
                 "continue": True,
-                "metadata": {
-                    "cached": True,
-                    "cache_stats": cache.get_stats()
-                }
+                "metadata": {"cached": True, "cache_stats": cache.get_stats()},
             }
         else:
             result = {
                 "continue": True,
-                "metadata": {
-                    "cached": False,
-                    "reason": "Not cacheable or error result"
-                }
+                "metadata": {"cached": False, "reason": "Not cacheable or error result"},
             }
 
         print(json.dumps(result))
 
     except Exception as e:
         # On error, continue but report the error
-        error_result = {
-            "continue": True,
-            "metadata": {
-                "cached": False,
-                "error": str(e)
-            }
-        }
+        error_result = {"continue": True, "metadata": {"cached": False, "error": str(e)}}
         print(json.dumps(error_result))
 
 

@@ -6,11 +6,11 @@ Triggers on: UserPromptSubmit (all user prompts)
 """
 
 import json
-import sys
 import re
+import sys
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
 
 
 class SmartSearchDetector:
@@ -32,10 +32,10 @@ class SmartSearchDetector:
 
         # LPN ID patterns (common formats)
         self.lpn_patterns = [
-            r'\b\d{1,4}#{0,10}\d{4,10}#{0,10}\d{1,4}\b',  # e.g., 6####92020###249
-            r'\b[A-Z]{2,4}\d{6,10}\b',  # e.g., NSWK123456
-            r'\b\d{10,15}\b',            # e.g., 621879202000024
-            r'\bLPN[:\s-]?([A-Z0-9#]+)\b',  # e.g., LPN:ABC123 or LPN:6####92020###249
+            r"\b\d{1,4}#{0,10}\d{4,10}#{0,10}\d{1,4}\b",  # e.g., 6####92020###249
+            r"\b[A-Z]{2,4}\d{6,10}\b",  # e.g., NSWK123456
+            r"\b\d{10,15}\b",  # e.g., 621879202000024
+            r"\bLPN[:\s-]?([A-Z0-9#]+)\b",  # e.g., LPN:ABC123 or LPN:6####92020###249
         ]
 
     def _log_detection(self, log_entry: dict):
@@ -91,8 +91,7 @@ class SmartSearchDetector:
 
         intents = {
             "search_animal": any(
-                keyword in text_lower
-                for keyword in ["search", "find", "look for", "locate"]
+                keyword in text_lower for keyword in ["search", "find", "look for", "locate"]
             ),
             "get_lineage": any(
                 keyword in text_lower
@@ -109,19 +108,22 @@ class SmartSearchDetector:
             "trait_analysis": any(
                 keyword in text_lower
                 for keyword in [
-                    "trait", "ebv", "breeding value", "weight", "wool",
-                    "parasite", "resistance", "muscle", "fat"
+                    "trait",
+                    "ebv",
+                    "breeding value",
+                    "weight",
+                    "wool",
+                    "parasite",
+                    "resistance",
+                    "muscle",
+                    "fat",
                 ]
-            )
+            ),
         }
 
         return intents
 
-    def _build_suggestion_message(
-        self,
-        detected_ids: List[str],
-        intents: Dict[str, bool]
-    ) -> str:
+    def _build_suggestion_message(self, detected_ids: List[str], intents: Dict[str, bool]) -> str:
         """
         Build context message with suggestions.
 
@@ -147,13 +149,9 @@ class SmartSearchDetector:
 
         if detected_ids:
             if intents.get("get_lineage"):
-                suggestions.append(
-                    "Use nsip_get_lineage to explore ancestry and pedigree"
-                )
+                suggestions.append("Use nsip_get_lineage to explore ancestry and pedigree")
             elif intents.get("get_progeny"):
-                suggestions.append(
-                    "Use nsip_get_progeny to view offspring and descendants"
-                )
+                suggestions.append("Use nsip_get_progeny to view offspring and descendants")
             elif intents.get("compare_traits") and len(detected_ids) > 1:
                 suggestions.append(
                     "Use nsip_get_animal for each ID, then compare their trait values"
@@ -204,7 +202,7 @@ class SmartSearchDetector:
                 "timestamp": datetime.now().isoformat(),
                 "detected_ids": detected_ids,
                 "intents": {k: v for k, v in intents.items() if v},
-                "prompt_length": len(prompt)
+                "prompt_length": len(prompt),
             }
             self._log_detection(log_entry)
 
@@ -216,7 +214,7 @@ class SmartSearchDetector:
             "ids_detected": len(detected_ids),
             "detected_ids": detected_ids,
             "intents": intents,
-            "suggestion_message": suggestion_message
+            "suggestion_message": suggestion_message,
         }
 
 
@@ -232,7 +230,7 @@ def main():
         if not prompt:
             result = {
                 "continue": True,
-                "metadata": {"detection_performed": False, "reason": "Empty prompt"}
+                "metadata": {"detection_performed": False, "reason": "Empty prompt"},
             }
             print(json.dumps(result))
             sys.exit(0)
@@ -242,10 +240,7 @@ def main():
         analysis_metadata = detector.analyze_prompt(prompt)
 
         # Build result
-        result = {
-            "continue": True,
-            "metadata": analysis_metadata
-        }
+        result = {"continue": True, "metadata": analysis_metadata}
 
         # Add context message if suggestions were generated
         if analysis_metadata.get("suggestion_message"):
@@ -257,10 +252,7 @@ def main():
         # On error, continue but report the error
         error_result = {
             "continue": True,
-            "metadata": {
-                "detection_performed": False,
-                "error": str(e)
-            }
+            "metadata": {"detection_performed": False, "error": str(e)},
         }
         print(json.dumps(error_result))
 

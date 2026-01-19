@@ -4,9 +4,9 @@ LPN Validator Hook (PreToolUse)
 Validates LPN ID format before making NSIP API calls to prevent errors.
 """
 
+import json
 import re
 import sys
-import json
 
 
 def validate_lpn(lpn_id: str) -> tuple[bool, str]:
@@ -34,8 +34,11 @@ def validate_lpn(lpn_id: str) -> tuple[bool, str]:
         return False, f"LPN ID '{lpn_id}' is too long (maximum 50 characters)"
 
     # Check for valid characters (alphanumeric, #, -, _)
-    if not re.match(r'^[A-Za-z0-9#\-_]+$', lpn_id):
-        return False, f"LPN ID '{lpn_id}' contains invalid characters (only alphanumeric, #, -, _ allowed)"
+    if not re.match(r"^[A-Za-z0-9#\-_]+$", lpn_id):
+        return (
+            False,
+            f"LPN ID '{lpn_id}' contains invalid characters (only alphanumeric, #, -, _ allowed)",
+        )
 
     return True, ""
 
@@ -62,10 +65,7 @@ def main():
         if lpn_id is None:
             result = {
                 "continue": True,
-                "metadata": {
-                    "validation": "skipped",
-                    "reason": "No LPN ID parameter found"
-                }
+                "metadata": {"validation": "skipped", "reason": "No LPN ID parameter found"},
             }
             print(json.dumps(result))
             return
@@ -76,34 +76,20 @@ def main():
         if is_valid:
             result = {
                 "continue": True,
-                "metadata": {
-                    "validation": "passed",
-                    "lpn_id": lpn_id,
-                    "tool": tool_name
-                }
+                "metadata": {"validation": "passed", "lpn_id": lpn_id, "tool": tool_name},
             }
         else:
             result = {
                 "continue": False,
                 "error": error_message,
-                "metadata": {
-                    "validation": "failed",
-                    "lpn_id": lpn_id,
-                    "tool": tool_name
-                }
+                "metadata": {"validation": "failed", "lpn_id": lpn_id, "tool": tool_name},
             }
 
         print(json.dumps(result))
 
     except Exception as e:
         # On error, allow the call to proceed but log the error
-        error_result = {
-            "continue": True,
-            "metadata": {
-                "validation": "error",
-                "error": str(e)
-            }
-        }
+        error_result = {"continue": True, "metadata": {"validation": "error", "error": str(e)}}
         print(json.dumps(error_result))
 
 

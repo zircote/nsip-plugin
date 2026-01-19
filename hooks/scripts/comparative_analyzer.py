@@ -6,10 +6,9 @@ Triggers on: UserPromptSubmit (all user prompts)
 """
 
 import json
-import sys
 import re
-from datetime import datetime
-from typing import List, Dict, Tuple
+import sys
+from typing import Dict, List
 
 
 class ComparativeAnalyzer:
@@ -19,24 +18,46 @@ class ComparativeAnalyzer:
         """Initialize comparative analyzer."""
         # Patterns for detecting multiple animals
         self.animal_patterns = [
-            r'\b\d{1,4}#{0,10}\d{4,10}#{0,10}\d{1,4}\b',  # e.g., 6####92020###249
-            r'\b[A-Z]{2,4}\d{6,10}\b',  # LPN IDs
-            r'\b\d{10,15}\b',            # Numeric IDs
+            r"\b\d{1,4}#{0,10}\d{4,10}#{0,10}\d{1,4}\b",  # e.g., 6####92020###249
+            r"\b[A-Z]{2,4}\d{6,10}\b",  # LPN IDs
+            r"\b\d{10,15}\b",  # Numeric IDs
         ]
 
         # Comparison keywords
         self.comparison_keywords = [
-            "compare", "comparison", "versus", "vs", "vs.", "v.",
-            "better", "worse", "difference", "between",
-            "which", "best", "superior", "prefer",
-            "against", "relative to", "compared to"
+            "compare",
+            "comparison",
+            "versus",
+            "vs",
+            "vs.",
+            "v.",
+            "better",
+            "worse",
+            "difference",
+            "between",
+            "which",
+            "best",
+            "superior",
+            "prefer",
+            "against",
+            "relative to",
+            "compared to",
         ]
 
         # Multiple animal indicators
         self.multiple_indicators = [
-            "animals", "sheep", "rams", "ewes",
-            "these", "those", "both", "all",
-            "multiple", "several", "few", "pair"
+            "animals",
+            "sheep",
+            "rams",
+            "ewes",
+            "these",
+            "those",
+            "both",
+            "all",
+            "multiple",
+            "several",
+            "few",
+            "pair",
         ]
 
     def _detect_animal_ids(self, text: str) -> List[str]:
@@ -78,15 +99,11 @@ class ComparativeAnalyzer:
         text_lower = text.lower()
 
         # Check for comparison keywords
-        has_comparison_keyword = any(
-            keyword in text_lower
-            for keyword in self.comparison_keywords
-        )
+        has_comparison_keyword = any(keyword in text_lower for keyword in self.comparison_keywords)
 
         # Check for multiple animal indicators
         has_multiple_indicator = any(
-            indicator in text_lower
-            for indicator in self.multiple_indicators
+            indicator in text_lower for indicator in self.multiple_indicators
         )
 
         return has_comparison_keyword or has_multiple_indicator
@@ -109,7 +126,7 @@ class ComparativeAnalyzer:
             "meat": ["meat", "muscle", "carcass", "eye muscle", "fat"],
             "parasite": ["parasite", "worm", "fec", "wec", "resistance"],
             "growth": ["growth", "gain", "rate"],
-            "reproduction": ["reproduction", "lambing", "fertility", "nlb", "nlw"]
+            "reproduction": ["reproduction", "lambing", "fertility", "nlb", "nlw"],
         }
 
         detected_traits = []
@@ -120,11 +137,7 @@ class ComparativeAnalyzer:
         return detected_traits
 
     def _build_suggestion_message(
-        self,
-        animal_count: int,
-        animal_ids: List[str],
-        has_comparison: bool,
-        trait_focus: List[str]
+        self, animal_count: int, animal_ids: List[str], has_comparison: bool, trait_focus: List[str]
     ) -> str:
         """
         Build context message with comparative analysis suggestions.
@@ -149,9 +162,7 @@ class ComparativeAnalyzer:
                 f"I detected {animal_count} animals in your query: {', '.join(animal_ids)}"
             )
         elif has_comparison:
-            lines.append(
-                "I detected that you're interested in comparing animals."
-            )
+            lines.append("I detected that you're interested in comparing animals.")
 
         # Suggest comparative workflow
         lines.append("\nSuggested comparative analysis workflow:")
@@ -201,10 +212,7 @@ class ComparativeAnalyzer:
 
         # Build suggestion message
         suggestion_message = self._build_suggestion_message(
-            len(animal_ids),
-            animal_ids,
-            has_comparison,
-            trait_focus
+            len(animal_ids), animal_ids, has_comparison, trait_focus
         )
 
         return {
@@ -213,7 +221,7 @@ class ComparativeAnalyzer:
             "animal_ids": animal_ids,
             "comparison_intent": has_comparison,
             "trait_focus": trait_focus,
-            "suggestion_message": suggestion_message
+            "suggestion_message": suggestion_message,
         }
 
 
@@ -229,7 +237,7 @@ def main():
         if not prompt:
             result = {
                 "continue": True,
-                "metadata": {"analysis_performed": False, "reason": "Empty prompt"}
+                "metadata": {"analysis_performed": False, "reason": "Empty prompt"},
             }
             print(json.dumps(result))
             sys.exit(0)
@@ -239,15 +247,14 @@ def main():
         analysis_metadata = analyzer.analyze_prompt(prompt)
 
         # Only provide suggestions if relevant
-        if (analysis_metadata["animals_detected"] < 2 and
-            not analysis_metadata["comparison_intent"]):
+        if analysis_metadata["animals_detected"] < 2 and not analysis_metadata["comparison_intent"]:
             result = {
                 "continue": True,
                 "metadata": {
                     "analysis_performed": True,
                     "comparative_analysis_suggested": False,
-                    "reason": "No comparative analysis detected"
-                }
+                    "reason": "No comparative analysis detected",
+                },
             }
             print(json.dumps(result))
             sys.exit(0)
@@ -255,10 +262,7 @@ def main():
         # Build result
         result = {
             "continue": True,
-            "metadata": {
-                **analysis_metadata,
-                "comparative_analysis_suggested": True
-            }
+            "metadata": {**analysis_metadata, "comparative_analysis_suggested": True},
         }
 
         # Add context message if suggestions were generated
@@ -271,10 +275,7 @@ def main():
         # On error, continue but report the error
         error_result = {
             "continue": True,
-            "metadata": {
-                "analysis_performed": False,
-                "error": str(e)
-            }
+            "metadata": {"analysis_performed": False, "error": str(e)},
         }
         print(json.dumps(error_result))
 

@@ -5,11 +5,10 @@ Verifies NSIP API connectivity and availability at session start.
 """
 
 import json
-import sys
-import urllib.request
 import urllib.error
+import urllib.request
 from datetime import datetime
-from typing import Tuple, Optional
+from typing import Optional, Tuple
 
 
 # NSIP API endpoints
@@ -29,13 +28,12 @@ def check_api_health(timeout: int = 5) -> Tuple[bool, Optional[dict], Optional[s
     """
     try:
         req = urllib.request.Request(
-            HEALTH_CHECK_ENDPOINT,
-            headers={'User-Agent': 'Claude-Code-NSIP-Plugin/1.0'}
+            HEALTH_CHECK_ENDPOINT, headers={"User-Agent": "Claude-Code-NSIP-Plugin/1.0"}
         )
 
         with urllib.request.urlopen(req, timeout=timeout) as response:
             if response.status == 200:
-                data = json.loads(response.read().decode('utf-8'))
+                data = json.loads(response.read().decode("utf-8"))
                 return True, data, None
             else:
                 return False, None, f"HTTP {response.status}"
@@ -47,7 +45,7 @@ def check_api_health(timeout: int = 5) -> Tuple[bool, Optional[dict], Optional[s
         return False, None, f"Connection Error: {e.reason}"
 
     except Exception as e:
-        return False, None, f"Unexpected Error: {str(e)}"
+        return False, None, f"Unexpected Error: {e!s}"
 
 
 def format_health_report(is_healthy: bool, data: Optional[dict], error: Optional[str]) -> dict:
@@ -65,7 +63,7 @@ def format_health_report(is_healthy: bool, data: Optional[dict], error: Optional
     report = {
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "api_healthy": is_healthy,
-        "api_endpoint": HEALTH_CHECK_ENDPOINT
+        "api_endpoint": HEALTH_CHECK_ENDPOINT,
     }
 
     if is_healthy and data:
@@ -89,22 +87,13 @@ def main():
 
         # Prepare hook result
         if is_healthy:
-            result = {
-                "continue": True,
-                "metadata": {
-                    "health_check": "passed",
-                    **health_report
-                }
-            }
+            result = {"continue": True, "metadata": {"health_check": "passed", **health_report}}
         else:
             # Continue even if API is down, but warn user
             result = {
                 "continue": True,
                 "warning": f"NSIP API health check failed: {error}",
-                "metadata": {
-                    "health_check": "failed",
-                    **health_report
-                }
+                "metadata": {"health_check": "failed", **health_report},
             }
 
         print(json.dumps(result))
@@ -116,8 +105,8 @@ def main():
             "metadata": {
                 "health_check": "error",
                 "error": str(e),
-                "timestamp": datetime.utcnow().isoformat() + "Z"
-            }
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            },
         }
         print(json.dumps(error_result))
 

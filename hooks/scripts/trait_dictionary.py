@@ -7,7 +7,7 @@ Triggers on: All mcp__nsip__* tools
 
 import json
 import sys
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 
 class TraitDictionary:
@@ -22,92 +22,92 @@ class TraitDictionary:
                 "description": "Weight of lamb at weaning (typically 100 days)",
                 "unit": "kg",
                 "typical_range": "15-35 kg",
-                "significance": "Indicates early growth performance and maternal ability"
+                "significance": "Indicates early growth performance and maternal ability",
             },
             "PWWT": {
                 "name": "Post-Weaning Weight",
                 "description": "Weight gain after weaning period",
                 "unit": "kg",
                 "typical_range": "40-70 kg",
-                "significance": "Reflects growth potential and feed efficiency"
+                "significance": "Reflects growth potential and feed efficiency",
             },
             "YWT": {
                 "name": "Yearling Weight",
                 "description": "Weight at approximately 12 months of age",
                 "unit": "kg",
                 "typical_range": "50-90 kg",
-                "significance": "Indicator of mature size and growth rate"
+                "significance": "Indicator of mature size and growth rate",
             },
             "PEMD": {
                 "name": "Post-Weaning Eye Muscle Depth",
                 "description": "Ultrasound measurement of loin muscle",
                 "unit": "mm",
                 "typical_range": "20-40 mm",
-                "significance": "Indicator of meat yield and carcass quality"
+                "significance": "Indicator of meat yield and carcass quality",
             },
             "PFAT": {
                 "name": "Post-Weaning Fat Depth",
                 "description": "Ultrasound measurement of fat over loin",
                 "unit": "mm",
                 "typical_range": "2-8 mm",
-                "significance": "Important for meat quality and finish"
+                "significance": "Important for meat quality and finish",
             },
             "FEC": {
                 "name": "Faecal Egg Count",
                 "description": "Parasite resistance measure (worm eggs in feces)",
                 "unit": "eggs per gram",
                 "typical_range": "0-2000 epg",
-                "significance": "Lower values indicate better parasite resistance"
+                "significance": "Lower values indicate better parasite resistance",
             },
             "WEC": {
                 "name": "Worm Egg Count",
                 "description": "Measure of internal parasite burden",
                 "unit": "eggs per gram",
                 "typical_range": "0-2000 epg",
-                "significance": "Key indicator of animal health and resilience"
+                "significance": "Key indicator of animal health and resilience",
             },
             "CFW": {
                 "name": "Clean Fleece Weight",
                 "description": "Weight of wool after washing",
                 "unit": "kg",
                 "typical_range": "2-8 kg",
-                "significance": "Primary wool production measure"
+                "significance": "Primary wool production measure",
             },
             "FD": {
                 "name": "Fiber Diameter",
                 "description": "Average wool fiber thickness (micron)",
                 "unit": "microns",
                 "typical_range": "15-25 microns",
-                "significance": "Determines wool quality and price"
+                "significance": "Determines wool quality and price",
             },
             "SS": {
                 "name": "Staple Strength",
                 "description": "Measure of wool fiber strength",
                 "unit": "N/ktex",
                 "typical_range": "25-45 N/ktex",
-                "significance": "Important for processing and yarn quality"
+                "significance": "Important for processing and yarn quality",
             },
             "SL": {
                 "name": "Staple Length",
                 "description": "Length of wool staple",
                 "unit": "mm",
                 "typical_range": "60-120 mm",
-                "significance": "Affects processing and wool type"
+                "significance": "Affects processing and wool type",
             },
             "NLB": {
                 "name": "Number of Lambs Born",
                 "description": "Reproductive trait - lambs born per ewe",
                 "unit": "count",
                 "typical_range": "1-3",
-                "significance": "Key reproductive performance indicator"
+                "significance": "Key reproductive performance indicator",
             },
             "NLW": {
                 "name": "Number of Lambs Weaned",
                 "description": "Lambs successfully raised to weaning",
                 "unit": "count",
                 "typical_range": "1-2.5",
-                "significance": "Measures maternal ability and lamb survival"
-            }
+                "significance": "Measures maternal ability and lamb survival",
+            },
         }
 
         # Breeding terminology
@@ -120,7 +120,7 @@ class TraitDictionary:
             "Pedigree": "Family tree/lineage",
             "LPN": "Livestock Production Number - unique animal identifier",
             "Flock": "Group of sheep managed together",
-            "Selection Index": "Weighted combination of multiple traits for breeding decisions"
+            "Selection Index": "Weighted combination of multiple traits for breeding decisions",
         }
 
     def _detect_mentioned_traits(self, parameters: dict) -> List[str]:
@@ -156,9 +156,7 @@ class TraitDictionary:
         """
         trait = self.traits.get(trait_code, {})
 
-        parts = [
-            f"{trait_code} ({trait.get('name', 'Unknown')}): {trait.get('description', '')}"
-        ]
+        parts = [f"{trait_code} ({trait.get('name', 'Unknown')}): {trait.get('description', '')}"]
 
         if trait.get("typical_range"):
             parts.append(f"Typical range: {trait['typical_range']}")
@@ -220,7 +218,7 @@ class TraitDictionary:
             "context_injected": True,
             "detected_traits": detected_traits,
             "total_traits_available": len(self.traits),
-            "context_message": context_message
+            "context_message": context_message,
         }
 
 
@@ -237,7 +235,7 @@ def main():
         if not tool_name.startswith("mcp__nsip__"):
             result = {
                 "continue": True,
-                "metadata": {"context_injected": False, "reason": "Not an NSIP tool"}
+                "metadata": {"context_injected": False, "reason": "Not an NSIP tool"},
             }
             print(json.dumps(result))
             sys.exit(0)
@@ -247,10 +245,7 @@ def main():
         context_metadata = dictionary.generate_context(tool_params)
 
         # Build result
-        result = {
-            "continue": True,
-            "metadata": context_metadata
-        }
+        result = {"continue": True, "metadata": context_metadata}
 
         # Add context message
         if context_metadata.get("context_message"):
@@ -260,13 +255,7 @@ def main():
 
     except Exception as e:
         # On error, continue but report the error
-        error_result = {
-            "continue": True,
-            "metadata": {
-                "context_injected": False,
-                "error": str(e)
-            }
-        }
+        error_result = {"continue": True, "metadata": {"context_injected": False, "error": str(e)}}
         print(json.dumps(error_result))
 
     sys.exit(0)

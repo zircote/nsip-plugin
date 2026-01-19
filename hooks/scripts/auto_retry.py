@@ -10,7 +10,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Tuple, Optional
+from typing import Dict, Optional, Tuple
 
 
 class AutoRetryHandler:
@@ -83,11 +83,7 @@ class AutoRetryHandler:
         return False, ""
 
     def _execute_retry(
-        self,
-        tool_name: str,
-        parameters: dict,
-        original_result: dict,
-        attempt: int
+        self, tool_name: str, parameters: dict, original_result: dict, attempt: int
     ) -> Optional[dict]:
         """
         Execute a retry attempt.
@@ -115,8 +111,10 @@ class AutoRetryHandler:
             "tool": tool_name,
             "parameters": parameters,
             "attempt": attempt,
-            "backoff_seconds": self.backoff_delays[attempt - 1] if attempt <= len(self.backoff_delays) else 0,
-            "status": "retrying"
+            "backoff_seconds": self.backoff_delays[attempt - 1]
+            if attempt <= len(self.backoff_delays)
+            else 0,
+            "status": "retrying",
         }
         self._log_retry(log_entry)
 
@@ -125,12 +123,7 @@ class AutoRetryHandler:
         # that the original result should be used
         return None
 
-    def handle_failure(
-        self,
-        tool_name: str,
-        parameters: dict,
-        result: dict
-    ) -> Dict:
+    def handle_failure(self, tool_name: str, parameters: dict, result: dict) -> Dict:
         """
         Handle failed tool execution with retry logic.
 
@@ -145,10 +138,7 @@ class AutoRetryHandler:
         is_failure, reason = self._is_failure(result)
 
         if not is_failure:
-            return {
-                "retry_needed": False,
-                "reason": "No failure detected"
-            }
+            return {"retry_needed": False, "reason": "No failure detected"}
 
         # Log initial failure
         failure_log = {
@@ -156,19 +146,14 @@ class AutoRetryHandler:
             "tool": tool_name,
             "parameters": parameters,
             "failure_reason": reason,
-            "status": "initial_failure"
+            "status": "initial_failure",
         }
         self._log_retry(failure_log)
 
         # Execute retry attempts
         retry_count = 0
         for attempt in range(1, self.max_retries + 1):
-            retry_result = self._execute_retry(
-                tool_name,
-                parameters,
-                result,
-                attempt
-            )
+            retry_result = self._execute_retry(tool_name, parameters, result, attempt)
 
             retry_count += 1
 
@@ -178,7 +163,7 @@ class AutoRetryHandler:
                     "timestamp": datetime.utcnow().isoformat() + "Z",
                     "tool": tool_name,
                     "attempt": attempt,
-                    "status": "retry_succeeded"
+                    "status": "retry_succeeded",
                 }
                 self._log_retry(success_log)
 
@@ -186,7 +171,7 @@ class AutoRetryHandler:
                     "retry_needed": True,
                     "retry_count": retry_count,
                     "status": "succeeded",
-                    "context_message": f"Note: API call succeeded after {retry_count} retry attempt(s)"
+                    "context_message": f"Note: API call succeeded after {retry_count} retry attempt(s)",
                 }
 
         # All retries exhausted
@@ -194,7 +179,7 @@ class AutoRetryHandler:
             "timestamp": datetime.utcnow().isoformat() + "Z",
             "tool": tool_name,
             "max_retries": self.max_retries,
-            "status": "retries_exhausted"
+            "status": "retries_exhausted",
         }
         self._log_retry(exhausted_log)
 
@@ -202,7 +187,7 @@ class AutoRetryHandler:
             "retry_needed": True,
             "retry_count": retry_count,
             "status": "exhausted",
-            "context_message": f"Warning: API call failed after {retry_count} retry attempt(s). Using original result."
+            "context_message": f"Warning: API call failed after {retry_count} retry attempt(s). Using original result.",
         }
 
 
@@ -220,27 +205,17 @@ def main():
         if not tool_name.startswith("mcp__nsip__"):
             result = {
                 "continue": True,
-                "metadata": {"retry_handled": False, "reason": "Not an NSIP tool"}
+                "metadata": {"retry_handled": False, "reason": "Not an NSIP tool"},
             }
             print(json.dumps(result))
             sys.exit(0)
 
         # Handle retry logic
         retry_handler = AutoRetryHandler()
-        retry_metadata = retry_handler.handle_failure(
-            tool_name,
-            tool_params,
-            tool_result
-        )
+        retry_metadata = retry_handler.handle_failure(tool_name, tool_params, tool_result)
 
         # Build result
-        result = {
-            "continue": True,
-            "metadata": {
-                "retry_handled": True,
-                **retry_metadata
-            }
-        }
+        result = {"continue": True, "metadata": {"retry_handled": True, **retry_metadata}}
 
         # Add context message if retries were attempted
         if retry_metadata.get("context_message"):
@@ -250,13 +225,7 @@ def main():
 
     except Exception as e:
         # On error, continue but report the error
-        error_result = {
-            "continue": True,
-            "metadata": {
-                "retry_handled": False,
-                "error": str(e)
-            }
-        }
+        error_result = {"continue": True, "metadata": {"retry_handled": False, "error": str(e)}}
         print(json.dumps(error_result))
 
     sys.exit(0)
