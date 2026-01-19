@@ -6,11 +6,11 @@ Provides test environment setup, cleanup, and common fixtures for all tests.
 
 import json
 import os
-import tempfile
 import shutil
-from pathlib import Path
-from typing import Dict, Any
+import tempfile
 import unittest
+from pathlib import Path
+from typing import Any, Dict
 
 
 class TestEnvironment:
@@ -132,7 +132,7 @@ class TestEnvironment:
             return []
 
         entries = []
-        with open(log_file, 'r', encoding='utf-8') as f:
+        with open(log_file, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if line:
@@ -155,7 +155,7 @@ class TestEnvironment:
         if not cache_file.exists():
             return {}
 
-        with open(cache_file, 'r', encoding='utf-8') as f:
+        with open(cache_file, encoding="utf-8") as f:
             return json.load(f)
 
 
@@ -172,18 +172,18 @@ class BaseHookTestCase(unittest.TestCase):
         self.env.setup()
 
         # Store original HOME to restore later
-        self.original_home = os.environ.get('HOME')
+        self.original_home = os.environ.get("HOME")
 
         # Mock HOME directory for hooks
-        os.environ['HOME'] = self.env.mock_home_dir()
+        os.environ["HOME"] = self.env.mock_home_dir()
 
     def tearDown(self):
         """Clean up test environment after each test."""
         # Restore original HOME
         if self.original_home:
-            os.environ['HOME'] = self.original_home
+            os.environ["HOME"] = self.original_home
         else:
-            os.environ.pop('HOME', None)
+            os.environ.pop("HOME", None)
 
         # Clean up test environment
         self.env.teardown()
@@ -205,10 +205,10 @@ class BaseHookTestCase(unittest.TestCase):
 
         # Run hook with input
         proc = subprocess.run(
-            ['python3', str(hook_path)],
+            ["python3", str(hook_path)],
             input=json.dumps(input_data),
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # Parse output
@@ -220,10 +220,10 @@ class BaseHookTestCase(unittest.TestCase):
                 pass
 
         return {
-            'returncode': proc.returncode,
-            'stdout': proc.stdout,
-            'stderr': proc.stderr,
-            'output': output
+            "returncode": proc.returncode,
+            "stdout": proc.stdout,
+            "stderr": proc.stderr,
+            "output": output,
         }
 
     def assertHookSuccess(self, result: Dict[str, Any], msg: str = None):
@@ -234,8 +234,8 @@ class BaseHookTestCase(unittest.TestCase):
             result: Result from run_hook()
             msg: Optional assertion message
         """
-        self.assertEqual(result['returncode'], 0, msg or "Hook should exit with code 0")
-        self.assertIsNotNone(result['output'], msg or "Hook should output valid JSON")
+        self.assertEqual(result["returncode"], 0, msg or "Hook should exit with code 0")
+        self.assertIsNotNone(result["output"], msg or "Hook should output valid JSON")
 
     def assertHookContinues(self, result: Dict[str, Any], msg: str = None):
         """
@@ -247,8 +247,7 @@ class BaseHookTestCase(unittest.TestCase):
         """
         self.assertHookSuccess(result, msg)
         self.assertTrue(
-            result['output'].get('continue', True),
-            msg or "Hook should allow continuation"
+            result["output"].get("continue", True), msg or "Hook should allow continuation"
         )
 
     def assertHookBlocks(self, result: Dict[str, Any], msg: str = None):
@@ -261,8 +260,7 @@ class BaseHookTestCase(unittest.TestCase):
         """
         self.assertHookSuccess(result, msg)
         self.assertFalse(
-            result['output'].get('continue', True),
-            msg or "Hook should block continuation"
+            result["output"].get("continue", True), msg or "Hook should block continuation"
         )
 
     def assertHookHasMetadata(self, result: Dict[str, Any], key: str, msg: str = None):
@@ -277,8 +275,8 @@ class BaseHookTestCase(unittest.TestCase):
         self.assertHookSuccess(result, msg)
         self.assertIn(
             key,
-            result['output'].get('metadata', {}),
-            msg or f"Hook metadata should contain '{key}'"
+            result["output"].get("metadata", {}),
+            msg or f"Hook metadata should contain '{key}'",
         )
 
     def assertHookHasError(self, result: Dict[str, Any], msg: str = None):
@@ -290,11 +288,7 @@ class BaseHookTestCase(unittest.TestCase):
             msg: Optional assertion message
         """
         self.assertHookSuccess(result, msg)
-        self.assertIn(
-            'error',
-            result['output'],
-            msg or "Hook output should contain error"
-        )
+        self.assertIn("error", result["output"], msg or "Hook output should contain error")
 
     def assertHookHasContext(self, result: Dict[str, Any], msg: str = None):
         """
@@ -306,7 +300,5 @@ class BaseHookTestCase(unittest.TestCase):
         """
         self.assertHookSuccess(result, msg)
         self.assertIn(
-            'context',
-            result['output'],
-            msg or "Hook output should contain context message"
+            "context", result["output"], msg or "Hook output should contain context message"
         )

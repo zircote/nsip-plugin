@@ -20,8 +20,7 @@ import sys
 import time
 import unittest
 from pathlib import Path
-from io import StringIO
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 
 class TestStatistics:
@@ -58,7 +57,9 @@ class TestStatistics:
         self.failed_tests += len(result.failures)
         self.error_tests += len(result.errors)
         self.skipped_tests += len(result.skipped)
-        self.passed_tests = self.total_tests - self.failed_tests - self.error_tests - self.skipped_tests
+        self.passed_tests = (
+            self.total_tests - self.failed_tests - self.error_tests - self.skipped_tests
+        )
 
         self.failures.extend(result.failures)
         self.errors.extend(result.errors)
@@ -72,27 +73,19 @@ class TestStatistics:
     def to_dict(self) -> Dict[str, Any]:
         """Convert statistics to dictionary."""
         return {
-            'total': self.total_tests,
-            'passed': self.passed_tests,
-            'failed': self.failed_tests,
-            'errors': self.error_tests,
-            'skipped': self.skipped_tests,
-            'success_rate': self.success_rate(),
-            'duration': self.duration(),
-            'failures': [
-                {
-                    'test': str(test),
-                    'traceback': traceback
-                }
-                for test, traceback in self.failures
+            "total": self.total_tests,
+            "passed": self.passed_tests,
+            "failed": self.failed_tests,
+            "errors": self.error_tests,
+            "skipped": self.skipped_tests,
+            "success_rate": self.success_rate(),
+            "duration": self.duration(),
+            "failure_details": [
+                {"test": str(test), "traceback": traceback} for test, traceback in self.failures
             ],
-            'errors': [
-                {
-                    'test': str(test),
-                    'traceback': traceback
-                }
-                for test, traceback in self.errors
-            ]
+            "error_details": [
+                {"test": str(test), "traceback": traceback} for test, traceback in self.errors
+            ],
         }
 
     def print_summary(self):
@@ -129,7 +122,9 @@ class TestRunner:
         self.test_dir = Path(__file__).parent
         self.stats = TestStatistics()
 
-    def discover_tests(self, pattern: str = "test_*.py", start_dir: str = None) -> unittest.TestSuite:
+    def discover_tests(
+        self, pattern: str = "test_*.py", start_dir: str = None
+    ) -> unittest.TestSuite:
         """
         Discover tests matching pattern.
 
@@ -191,12 +186,12 @@ class TestRunner:
 
         # Map hook names to test files
         hook_test_map = {
-            'api_health_check': 'test_session_start.py',
-            'lpn_validator': 'test_pre_tool_use.py',
-            'breed_context_injector': 'test_pre_tool_use.py',
-            'auto_retry': 'test_post_tool_use.py',
-            'query_logger': 'test_post_tool_use.py',
-            'smart_search_detector': 'test_user_prompt_submit.py',
+            "api_health_check": "test_session_start.py",
+            "lpn_validator": "test_pre_tool_use.py",
+            "breed_context_injector": "test_pre_tool_use.py",
+            "auto_retry": "test_post_tool_use.py",
+            "query_logger": "test_post_tool_use.py",
+            "smart_search_detector": "test_user_prompt_submit.py",
         }
 
         test_file = hook_test_map.get(hook_name)
@@ -228,12 +223,12 @@ class TestRunner:
     def generate_json_report(self, output_file: str):
         """Generate JSON test report."""
         report = {
-            'timestamp': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
-            'statistics': self.stats.to_dict(),
-            'test_directory': str(self.test_dir),
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "statistics": self.stats.to_dict(),
+            "test_directory": str(self.test_dir),
         }
 
-        with open(output_file, 'w', encoding='utf-8') as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
 
         print(f"\nJSON report written to: {output_file}")
@@ -252,7 +247,7 @@ class TestRunner:
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description='NSIP Plugin Test Runner',
+        description="NSIP Plugin Test Runner",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -262,47 +257,20 @@ Examples:
   python test_runner.py --hook lpn_validator      # Specific hook
   python test_runner.py --verbose                 # Verbose output
   python test_runner.py --json report.json        # JSON output
-        """
+        """,
     )
 
-    parser.add_argument(
-        '--unit',
-        action='store_true',
-        help='Run unit tests only'
-    )
+    parser.add_argument("--unit", action="store_true", help="Run unit tests only")
 
-    parser.add_argument(
-        '--integration',
-        action='store_true',
-        help='Run integration tests only'
-    )
+    parser.add_argument("--integration", action="store_true", help="Run integration tests only")
 
-    parser.add_argument(
-        '--hook',
-        type=str,
-        metavar='HOOK_NAME',
-        help='Run tests for specific hook'
-    )
+    parser.add_argument("--hook", type=str, metavar="HOOK_NAME", help="Run tests for specific hook")
 
-    parser.add_argument(
-        '--verbose',
-        '-v',
-        action='store_true',
-        help='Verbose output'
-    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
 
-    parser.add_argument(
-        '--json',
-        type=str,
-        metavar='FILE',
-        help='Generate JSON report'
-    )
+    parser.add_argument("--json", type=str, metavar="FILE", help="Generate JSON report")
 
-    parser.add_argument(
-        '--coverage',
-        action='store_true',
-        help='Show coverage information'
-    )
+    parser.add_argument("--coverage", action="store_true", help="Show coverage information")
 
     args = parser.parse_args()
 
@@ -348,5 +316,5 @@ Examples:
         sys.exit(0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
